@@ -8,7 +8,6 @@ from .models import Base
 load_dotenv()
 
 # Получение URL для подключения к БД напрямую из .env
-# Это будет 'sqlite:///bot.db' согласно вашему .env
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 # Проверка, что DATABASE_URL установлен
