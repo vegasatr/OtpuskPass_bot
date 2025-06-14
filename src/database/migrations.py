@@ -2,20 +2,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import os
-from models import Base
+from .models import Base
 
 # Загрузка переменных окружения
 load_dotenv()
 
-# Получение параметров подключения к БД
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_NAME = os.getenv('DB_NAME')
-DB_HOST = os.getenv('DB_HOST')
-DB_PORT = os.getenv('DB_PORT')
+# Получение URL для подключения к БД напрямую из .env
+# Это будет 'sqlite:///bot.db' согласно вашему .env
+DATABASE_URL = os.getenv('DATABASE_URL')
 
-# Создание URL для подключения к БД
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Проверка, что DATABASE_URL установлен
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL не установлен в файле .env")
 
 def init_db():
     """Инициализация базы данных"""
