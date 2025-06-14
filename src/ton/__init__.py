@@ -1,0 +1,3 @@
+"""
+TON client package initialization
+""" 

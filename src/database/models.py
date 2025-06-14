@@ -1,25 +1,30 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Enum
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime
 
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Boolean, Enum
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship # Импортируем relationship
+
 Base = declarative_base()
+
 
 class UserRole(enum.Enum):
     USER = "user"
     OWNER = "owner"
     ADMIN = "admin"
 
+
 class SubscriptionStatus(enum.Enum):
     ACTIVE = "active"
     PAUSED = "paused"
     CANCELLED = "cancelled"
 
+
 class PaymentStatus(enum.Enum):
     PENDING = "pending"
     COMPLETED = "completed"
     FAILED = "failed"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -31,6 +36,7 @@ class User(Base):
     status = Column(String, default="active")
     current_nights = Column(Integer, default=0)
     referral_code = Column(String, unique=True)
+    # referrer_id указывает на пользователя, который пригласил ТЕКУЩЕГО пользователя
     referrer_id = Column(Integer, ForeignKey("users.id"))
     registration_date = Column(DateTime, default=datetime.utcnow)
     role = Column(Enum(UserRole), default=UserRole.USER)
@@ -38,7 +44,30 @@ class User(Base):
     # Отношения
     subscriptions = relationship("Subscription", back_populates="user")
     bookings = relationship("Booking", back_populates="user")
-    referral_bonuses = relationship("ReferralBonus", back_populates="user")
+
+    # Отношение для бонусов, заработанных ЭТИМ пользователем
+    earned_bonuses = relationship(
+        "ReferralBonus",
+        foreign_keys="[ReferralBonus.user_id]",
+        back_populates="earning_user"
+    )
+
+    # Отношение для пользователей, которых ЭТОТ пользователь пригласил
+    invited_users = relationship(
+        "User",
+        foreign_keys="[User.referrer_id]",
+        remote_side="[User.id]",
+        back_populates="referrer"
+    )
+
+    # Отношение для того, кто пригласил ЭТОГО пользователя
+    referrer = relationship(
+        "User",
+        foreign_keys="[User.referrer_id]",
+        remote_side="[User.id]",
+        back_populates="invited_users"
+    )
+
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
@@ -55,6 +84,7 @@ class Subscription(Base):
     # Отношения
     user = relationship("User", back_populates="subscriptions")
     payments = relationship("Payment", back_populates="subscription")
+
 
 class Apartment(Base):
     __tablename__ = "apartments"
@@ -75,6 +105,7 @@ class Apartment(Base):
     # Отношения
     bookings = relationship("Booking", back_populates="apartment")
 
+
 class Booking(Base):
     __tablename__ = "bookings"
 
@@ -90,6 +121,7 @@ class Booking(Base):
     user = relationship("User", back_populates="bookings")
     apartment = relationship("Apartment", back_populates="bookings")
 
+
 class ReferralBonus(Base):
     __tablename__ = "referral_bonuses"
 
@@ -98,8 +130,19 @@ class ReferralBonus(Base):
     invited_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     bonus_month_given_date = Column(DateTime, nullable=False)
 
-    # Отношения
-    user = relationship("User", back_populates="referral_bonuses")
+    # Отношение к пользователю, который заработал этот бонус
+    earning_user = relationship(
+        "User",
+        foreign_keys=[user_id],
+        back_populates="earned_bonuses"
+    )
+
+    # Отношение к пользователю, который был приглашен
+    invited_user = relationship(
+        "User",
+        foreign_keys=[invited_user_id]
+    )
+
 
 class Payment(Base):
     __tablename__ = "payments"
@@ -114,6 +157,7 @@ class Payment(Base):
 
     subscription = relationship("Subscription", back_populates="payments")
 
+
 class PaymentTransaction(Base):
     __tablename__ = "payment_transactions"
 
@@ -124,4 +168,4 @@ class PaymentTransaction(Base):
     transaction_hash = Column(String, unique=True)
     status = Column(String, default="pending")
     type = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow) 
+    created_at = Column(DateTime, default=datetime.utcnow)

@@ -3,7 +3,7 @@ import os
 import logging
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from src.database.models import Payment, PaymentStatus
+from database.models import Payment, PaymentStatus
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
@@ -62,11 +62,4 @@ class PaymentChecker:
         finally:
             session.close()
 
-    def run(self):
-        """
-        Запускает проверку платежей в асинхронном режиме
-        """
-        logger.info("Запуск PaymentChecker в асинхронном режиме...")
-        loop = asyncio.get_event_loop()
-        loop.create_task(self.start())
-        loop.run_forever() 
+    # Удален метод run(self), чтобы избежать конфликтов циклов событий
