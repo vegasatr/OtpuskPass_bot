@@ -34,98 +34,6 @@ fi
 SESSION_NAME="otpusk_bot"
 PROJECT_DIR="/mnt/c/Users/vegas/.cursor/OtpuskPass_bot"
 
-# Функция проверки и создания виртуального окружения
-setup_virtual_environment() {
-    log "🐍 Проверяем виртуальное окружение..."
-    
-    cd "$PROJECT_DIR"
-    
-    # Проверяем, существует ли виртуальное окружение
-    if [ ! -d "venv" ]; then
-        warning "⚠️ Виртуальное окружение не найдено - создаём новое..."
-        
-        # Проверяем наличие python3
-        if ! command -v python3 &> /dev/null; then
-            error "Python3 не установлен! Установите: sudo apt install python3 python3-venv python3-pip"
-            exit 1
-        fi
-        
-        # Создаём виртуальное окружение
-        log "🔧 Создаём виртуальное окружение..."
-        python3 -m venv venv
-        
-        if [ ! -d "venv" ]; then
-            error "Не удалось создать виртуальное окружение!"
-            exit 1
-        fi
-        
-        log "✅ Виртуальное окружение создано"
-    else
-        log "✅ Виртуальное окружение найдено"
-    fi
-    
-    # Проверяем основные зависимости
-    log "🔍 Проверяем установленные зависимости..."
-    
-    local missing_packages=()
-    local venv_python="venv/bin/python3"
-    
-    # Проверяем каждую критическую зависимость
-    if ! $venv_python -c "import telegram" 2>/dev/null; then
-        missing_packages+=("python-telegram-bot")
-    fi
-    
-    if ! $venv_python -c "import sqlalchemy" 2>/dev/null; then
-        missing_packages+=("sqlalchemy")
-    fi
-    
-    if ! $venv_python -c "import requests" 2>/dev/null; then
-        missing_packages+=("requests")
-    fi
-    
-    # Если есть недостающие пакеты - устанавливаем все из requirements.txt
-    if [ ${#missing_packages[@]} -gt 0 ]; then
-        warning "⚠️ Обнаружены недостающие зависимости: ${missing_packages[*]}"
-        
-        # Проверяем наличие requirements.txt
-        if [ -f "requirements.txt" ]; then
-            log "📦 Устанавливаем зависимости из requirements.txt..."
-            
-            # Обновляем pip
-            $venv_python -m pip install --upgrade pip
-            
-            # Устанавливаем зависимости
-            $venv_python -m pip install -r requirements.txt
-            
-            # Проверяем установку ещё раз
-            log "🔍 Проверяем установку зависимостей..."
-            local still_missing=()
-            
-            for package in "${missing_packages[@]}"; do
-                if ! $venv_python -c "import $package" 2>/dev/null; then
-                    still_missing+=("$package")
-                fi
-            done
-            
-            if [ ${#still_missing[@]} -gt 0 ]; then
-                error "❌ Не удалось установить: ${still_missing[*]}"
-                error "Попробуйте установить вручную: pip install ${still_missing[*]}"
-                exit 1
-            fi
-            
-            log "✅ Все зависимости успешно установлены"
-        else
-            error "❌ Файл requirements.txt не найден!"
-            error "Создайте файл requirements.txt или установите зависимости вручную"
-            exit 1
-        fi
-    else
-        log "✅ Все необходимые зависимости установлены"
-    fi
-    
-    log "🎉 Виртуальное окружение готово к работе"
-}
-
 # Функция остановки всех процессов
 stop_all_processes() {
     log "💀 ПОЛНАЯ ОЧИСТКА всех процессов и сессий..."
@@ -172,11 +80,6 @@ clear_webhook() {
     
     cd "$PROJECT_DIR"
     
-    # Активируем виртуальное окружение
-    if [ -d "venv" ]; then
-        source venv/bin/activate
-    fi
-    
     # Многократная попытка очистки webhook
     local attempts=0
     local max_attempts=5
@@ -200,15 +103,12 @@ clear_webhook() {
     warning "🔄 Продолжаем запуск бота..."
 }
 
-# Проверяем и настраиваем виртуальное окружение
-setup_virtual_environment
-
 # Основная остановка
 log "🔄 УМНАЯ ОЧИСТКА перед запуском..."
 stop_all_processes
 clear_webhook
-log "⏳ Ждём 5 секунд для полной очистки..."
-sleep 5
+log "⏳ Ждём 10 секунд для полной очистки..."
+sleep 10
 
 echo "📁 Переходим в директорию проекта: $PROJECT_DIR"
 cd "$PROJECT_DIR"
@@ -221,7 +121,6 @@ tmux new-session -d -s $SESSION_NAME
 log "🚀 Запускаем основной бот..."
 tmux rename-window -t $SESSION_NAME:0 'main-bot'
 tmux send-keys -t $SESSION_NAME:0 "cd '$PROJECT_DIR'" C-m
-tmux send-keys -t $SESSION_NAME:0 "source venv/bin/activate" C-m
 tmux send-keys -t $SESSION_NAME:0 "PYTHONPATH=$PROJECT_DIR python3 src/main.py" C-m
 
 # Окно 2: Мониторинг логов
@@ -234,7 +133,6 @@ tmux send-keys -t $SESSION_NAME:1 "tail -f bot.log" C-m
 log "⌨️  Создаем рабочий терминал..."
 tmux new-window -t $SESSION_NAME -n 'terminal'
 tmux send-keys -t $SESSION_NAME:2 "cd '$PROJECT_DIR'" C-m
-tmux send-keys -t $SESSION_NAME:2 "source venv/bin/activate" C-m
 
 echo ""
 echo "✅ Бот запущен в tmux сессии: $SESSION_NAME"
