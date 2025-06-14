@@ -1,0 +1,8 @@
+                                List of roles
+    Role name    |                         Attributes                         
+-----------------+------------------------------------------------------------
+ bizly_admin     | Create DB
+ bizly_user      | 
+ otpuskpass_user | 
+ postgres        | Superuser, Create role, Create DB, Replication, Bypass RLS
+

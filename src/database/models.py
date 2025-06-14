@@ -11,13 +11,23 @@ class UserRole(enum.Enum):
     OWNER = "owner"
     ADMIN = "admin"
 
+class SubscriptionStatus(enum.Enum):
+    ACTIVE = "active"
+    PAUSED = "paused"
+    CANCELLED = "cancelled"
+
+class PaymentStatus(enum.Enum):
+    PENDING = "pending"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
     telegram_id = Column(Integer, unique=True, nullable=False)
     first_name = Column(String, nullable=False)
-    last_name = Column(String)
+    last_name = Column(String, nullable=False)
     status = Column(String, default="active")
     current_nights = Column(Integer, default=0)
     referral_code = Column(String, unique=True)
@@ -36,14 +46,15 @@ class Subscription(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     start_date = Column(DateTime, nullable=False)
-    next_payment_date = Column(DateTime, nullable=False)
-    status = Column(String, default="active")
+    status = Column(Enum(SubscriptionStatus), default=SubscriptionStatus.ACTIVE)
+    accumulated_nights = Column(Integer, default=0)
     payment_token = Column(String)
     amount_rub = Column(Float, nullable=False)
     amount_ton = Column(Float, nullable=False)
 
     # Отношения
     user = relationship("User", back_populates="subscriptions")
+    payments = relationship("Payment", back_populates="subscription")
 
 class Apartment(Base):
     __tablename__ = "apartments"
@@ -89,6 +100,19 @@ class ReferralBonus(Base):
 
     # Отношения
     user = relationship("User", back_populates="referral_bonuses")
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True)
+    subscription_id = Column(Integer, ForeignKey("subscriptions.id"), nullable=False)
+    amount_ton = Column(Float, nullable=False)
+    status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    ton_address = Column(String, nullable=False)
+
+    subscription = relationship("Subscription", back_populates="payments")
 
 class PaymentTransaction(Base):
     __tablename__ = "payment_transactions"
