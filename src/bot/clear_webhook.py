@@ -1,32 +1,22 @@
 import os
-import sys
 from dotenv import load_dotenv
 from telegram import Bot
+import asyncio
 
-# Загружаем переменные окружения
 load_dotenv()
+BOT_TOKEN = os.getenv('BOT_TOKEN')
 
-def clear_webhook():
-    """
-    Очищает вебхук для бота
-    """
+async def clear_webhook():
+    if not BOT_TOKEN:
+        print("BOT_TOKEN не найден в .env")
+        return
+
+    bot = Bot(token=BOT_TOKEN)
     try:
-        # Получаем токен из переменных окружения
-        bot_token = os.getenv('BOT_TOKEN')
-        if not bot_token:
-            print("❌ Ошибка: BOT_TOKEN не найден в .env файле")
-            sys.exit(1)
-
-        # Создаем экземпляр бота
-        bot = Bot(token=bot_token)
-        
-        # Удаляем вебхук
-        bot.delete_webhook()
-        print("✅ Вебхук успешно удален")
-        
+        await bot.delete_webhook()
+        print("Вебхук успешно удален (если он был установлен).")
     except Exception as e:
-        print(f"❌ Ошибка при удалении вебхука: {str(e)}")
-        sys.exit(1)
+        print(f"Ошибка при удалении вебхука: {e}")
 
-if __name__ == "__main__":
-    clear_webhook() 
+if __name__ == '__main__':
+    asyncio.run(clear_webhook())
