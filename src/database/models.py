@@ -26,6 +26,31 @@ class PaymentStatus(enum.Enum):
     FAILED = "failed"
 
 
+# ПЕРЕМЕЩЕНО: Класс ReferralBonus теперь определяется до класса User,
+# чтобы избежать NameError при ссылке на ReferralBonus.user_id в User.
+class ReferralBonus(Base):
+    __tablename__ = "referral_bonuses"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    invited_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    bonus_month_given_date = Column(DateTime, nullable=False)
+
+    # Отношение к пользователю, который заработал этот бонус
+    # Это заработано THIS пользователем (user_id)
+    earning_user = relationship(
+        "User",
+        foreign_keys=[user_id],
+        back_populates="earned_bonuses"
+    )
+
+    # Отношение к пользователю, который был приглашен
+    invited_user = relationship(
+        "User",
+        foreign_keys=[invited_user_id]
+    )
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -49,23 +74,23 @@ class User(Base):
     earned_bonuses = relationship(
         "ReferralBonus",
         foreign_keys="[ReferralBonus.user_id]",
-        back_populates="earning_user"
+        back_populates="earning_user",
+        primaryjoin="User.id == ReferralBonus.user_id"
     )
 
-    # Отношение для пользователей, которых ЭТОТ пользователь пригласил
-    invited_users = relationship(
-        "User",
-        foreign_keys="[User.referrer_id]",
-        remote_side="[User.id]",
-        back_populates="referrer"
-    )
-
-    # Отношение для того, кто пригласил ЭТОГО пользователя
+    # Отношение для того, кто пригласил ЭТОГО пользователя (Many-to-One)
     referrer = relationship(
         "User",
-        foreign_keys="[User.referrer_id]",
-        remote_side="[User.id]",
+        foreign_keys=[referrer_id],
+        remote_side=[id],
         back_populates="invited_users"
+    )
+
+    # Отношение для пользователей, которых ЭТОТ пользователь пригласил (One-to-Many)
+    invited_users = relationship(
+        "User",
+        foreign_keys=[referrer_id],
+        back_populates="referrer"
     )
 
 
@@ -120,28 +145,6 @@ class Booking(Base):
     # Отношения
     user = relationship("User", back_populates="bookings")
     apartment = relationship("Apartment", back_populates="bookings")
-
-
-class ReferralBonus(Base):
-    __tablename__ = "referral_bonuses"
-
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    invited_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    bonus_month_given_date = Column(DateTime, nullable=False)
-
-    # Отношение к пользователю, который заработал этот бонус
-    earning_user = relationship(
-        "User",
-        foreign_keys=[user_id],
-        back_populates="earned_bonuses"
-    )
-
-    # Отношение к пользователю, который был приглашен
-    invited_user = relationship(
-        "User",
-        foreign_keys=[invited_user_id]
-    )
 
 
 class Payment(Base):

@@ -1,0 +1,3 @@
+address=Базовая квартира в Pattaya (адрес)
+area_sqm=50.0
+num_bedrooms=1

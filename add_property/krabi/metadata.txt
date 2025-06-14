@@ -1,0 +1,3 @@
+address=Базовая квартира в Krabi (адрес)
+area_sqm=50.0
+num_bedrooms=1
