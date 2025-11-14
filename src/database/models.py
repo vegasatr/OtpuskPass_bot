@@ -56,11 +56,11 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     telegram_id = Column(Integer, unique=True, nullable=False)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
-    status = Column(String, default="active")
+    first_name = Column(String(255), nullable=False)
+    last_name = Column(String(255), nullable=False)
+    status = Column(String(50), default="active")
     current_nights = Column(Integer, default=0)
-    referral_code = Column(String, unique=True)
+    referral_code = Column(String(50), unique=True)
     # referrer_id указывает на пользователя, который пригласил ТЕКУЩЕГО пользователя
     referrer_id = Column(Integer, ForeignKey("users.id"))
     registration_date = Column(DateTime, default=datetime.utcnow)
@@ -102,7 +102,7 @@ class Subscription(Base):
     start_date = Column(DateTime, nullable=False)
     status = Column(Enum(SubscriptionStatus), default=SubscriptionStatus.ACTIVE)
     accumulated_nights = Column(Integer, default=0)
-    payment_token = Column(String)
+    payment_token = Column(String(255))
     amount_rub = Column(Float, nullable=False)
     amount_ton = Column(Float, nullable=False)
 
@@ -115,16 +115,16 @@ class Apartment(Base):
     __tablename__ = "apartments"
 
     id = Column(Integer, primary_key=True)
-    city = Column(String, nullable=False)
-    address = Column(String, nullable=False)
-    description = Column(String)
-    video_url = Column(String)
-    features = Column(String)
-    nearby_attractions = Column(String)
-    status = Column(String, default="available")
+    city = Column(String(100), nullable=False)
+    address = Column(String(500), nullable=False)
+    description = Column(String(2000))
+    video_url = Column(String(500))
+    features = Column(String(2000))
+    nearby_attractions = Column(String(2000))
+    status = Column(String(50), default="available")
     area_sqm = Column(Float)
     num_bedrooms = Column(Integer, default=1)
-    apartment_type = Column(String, default="Base")
+    apartment_type = Column(String(50), default="Base")
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     # Отношения
@@ -140,7 +140,7 @@ class Booking(Base):
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
     nights_used = Column(Integer, nullable=False)
-    status = Column(String, default="pending")
+    status = Column(String(50), default="pending")
 
     # Отношения
     user = relationship("User", back_populates="bookings")
@@ -156,7 +156,7 @@ class Payment(Base):
     status = Column(Enum(PaymentStatus), default=PaymentStatus.PENDING)
     created_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
-    ton_address = Column(String, nullable=False)
+    ton_address = Column(String(255), nullable=False)
 
     subscription = relationship("Subscription", back_populates="payments")
 
@@ -168,7 +168,7 @@ class PaymentTransaction(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     amount_rub = Column(Float, nullable=False)
     amount_ton = Column(Float, nullable=False)
-    transaction_hash = Column(String, unique=True)
-    status = Column(String, default="pending")
-    type = Column(String, nullable=False)
+    transaction_hash = Column(String(255), unique=True)
+    status = Column(String(50), default="pending")
+    type = Column(String(50), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
