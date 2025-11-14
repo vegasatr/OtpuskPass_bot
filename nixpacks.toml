@@ -10,3 +10,6 @@ cmds = ["echo 'Build complete'"]
 [start]
 cmd = "python start.py"
 
+[variables]
+PYTHONPATH = "/app:/app/src"
+
