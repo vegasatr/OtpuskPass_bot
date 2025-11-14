@@ -7,6 +7,7 @@ from database.models import Payment, PaymentStatus
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
+from database.migrations import get_database_url
 
 # Настройка логирования
 logger = logging.getLogger(__name__)
@@ -20,7 +21,8 @@ DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///bot.db')
 class PaymentChecker:
     def __init__(self):
         logger.info("Инициализация PaymentChecker...")
-        self.engine = create_engine(DATABASE_URL)
+        db_url = get_database_url(DATABASE_URL)
+        self.engine = create_engine(db_url)
         self.Session = sessionmaker(bind=self.engine)
         self.check_interval = 300  # 5 минут
         logger.info("PaymentChecker инициализирован")

@@ -22,7 +22,7 @@ app.add_middleware(
 
 # Зависимость для получения сессии БД
 def get_db():
-    from database.migrations import init_db
+    from src.database.migrations import init_db
     db = init_db()
     try:
         yield db
@@ -37,7 +37,7 @@ async def root():
 @app.get("/api/user/{telegram_id}")
 async def get_user(telegram_id: int, db: Session = Depends(get_db)):
     """Получение информации о пользователе"""
-    from database.models import User
+    from src.database.models import User
     user = db.query(User).filter(User.telegram_id == telegram_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
@@ -46,7 +46,7 @@ async def get_user(telegram_id: int, db: Session = Depends(get_db)):
 @app.get("/api/apartments/{city}")
 async def get_apartments(city: str, db: Session = Depends(get_db)):
     """Получение списка квартир в городе"""
-    from database.models import Apartment
+    from src.database.models import Apartment
     apartments = db.query(Apartment).filter(Apartment.city == city).all()
     return apartments
 

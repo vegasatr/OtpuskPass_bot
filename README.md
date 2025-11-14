@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 4. Создайте файл `.env` на основе `.env.example` и заполните необходимые переменные окружения.
 
-5. Создайте базу данных PostgreSQL и выполните миграции:
+5. Создайте базу данных MySQL и выполните миграции:
 ```bash
 python src/database/migrations.py
 ```
@@ -60,10 +60,47 @@ OtpuskPass_bot/
 │   ├── web/             # Веб-приложение (Mini App)
 │   ├── services/        # Бизнес-логика
 │   └── utils/           # Вспомогательные функции
+├── docs/                # Документация
+│   └── RAILWAY_DEPLOY.md # Инструкция по деплою на Railway
+├── git/                 # Git скрипты автоматизации
+│   ├── git_push.bat     # Скрипт пуша для Windows
+│   ├── git_push.sh      # Скрипт пуша для Linux/Mac
+│   └── README.md        # Документация git скриптов
 ├── tests/               # Тесты
 ├── .env.example         # Пример конфигурации
 ├── requirements.txt     # Зависимости
 └── README.md           # Документация
+```
+
+## Git автоматизация
+
+Для удобной работы с Git используйте автоматические скрипты:
+
+**Windows:**
+```batch
+git\git_push.bat
+```
+
+**Linux/Mac:**
+```bash
+bash git/git_push.sh
+```
+
+Скрипты автоматически:
+- Увеличивают версию проекта
+- Создают коммит с умным описанием
+- Создают ветку и тег
+- Отправляют изменения на GitHub
+
+Подробности в [git/README.md](git/README.md).
+
+## Деплой на Railway
+
+Подробная инструкция по деплою на Railway находится в [docs/RAILWAY_DEPLOY.md](docs/RAILWAY_DEPLOY.md).
+
+**Важно:** Для подключения к базе данных MySQL на Railway используйте внутреннюю ссылку:
+```
+mysql://root:BOrEIPmqHsfNbORBbxJaUhFSTyekKjYJ@mysql.railway.internal:3306/railway
 ```
 
 ## Лицензия

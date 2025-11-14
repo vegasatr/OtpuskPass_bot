@@ -14,10 +14,27 @@ DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL не установлен в файле .env")
 
+def get_database_url(db_url=None):
+    """Преобразует DATABASE_URL в формат, понятный SQLAlchemy
+    
+    Args:
+        db_url: URL базы данных. Если не указан, используется DATABASE_URL из окружения
+    
+    Returns:
+        Преобразованный URL для SQLAlchemy
+    """
+    url = db_url or DATABASE_URL
+    # Если URL начинается с mysql://, заменяем на mysql+pymysql:// для работы с pymysql
+    if url and url.startswith('mysql://'):
+        return url.replace('mysql://', 'mysql+pymysql://', 1)
+    return url
+
 def init_db():
     """Инициализация базы данных"""
+    # Получаем правильный URL для SQLAlchemy
+    db_url = get_database_url()
     # Создание движка SQLAlchemy
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(db_url)
     
     # Создание всех таблиц
     Base.metadata.create_all(engine)
